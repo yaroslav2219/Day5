@@ -1,152 +1,137 @@
-console.log('campaign module loaded');
-
 export const campaign = {
   data() {
     return {
       parent: null,
-      loader: 0,
-      campaignId: null,
+      loader: false,
       items: []
     };
   },
 
   mounted() {
     this.parent = this.$root;
-    this.campaignId = this.$route.params.id;
 
     if (!this.parent.user) {
       this.parent.logout();
       return;
     }
 
-    this.getCampaign();
+    this.get();
   },
 
   methods: {
-    getCampaign() {
-      this.loader = 1;
-
-      const fd = new FormData();
-      fd.append('id', this.campaignId);
+    get() {
+      this.loader = true;
 
       axios.post(
-        this.parent.url + '/site/getCampaign?auth=' + this.parent.user.auth.data,
-        fd
-      )
-      .then(res => {
+        this.parent.url + '/site/getCampaigns?auth=' + this.parent.user.auth.data
+      ).then(res => {
         this.items = Array.isArray(res.data.items)
-          ? res.data.items.filter(i => i && i.id)
+          ? res.data.items
           : [];
-      })
-      .finally(() => {
-        this.loader = 0;
+        this.loader = false;
+      }).catch(() => {
+        this.parent.logout();
       });
     },
 
     togglePublished(item, value) {
-      const old = item.published;
       item.published = value;
 
+      const fd = this.parent.toFormData(item);
+
       axios.post(
-        this.parent.url + '/site/actionCampaignItem?auth=' + this.parent.user.auth.data,
-        this.parent.toFormData(item)
+        this.parent.url + '/site/actionCampaign?auth=' + this.parent.user.auth.data,
+        fd
       ).catch(() => {
-        item.published = old;
+        item.published = !value;
       });
     },
 
     remove(item) {
-      this.parent.formData = { ...item };
+      this.parent.formData = item;
 
-      this.$refs.header.$refs.msg.confirmFun(
-        'Confirm',
-        'Delete this item?'
-      ).then(ok => {
-        if (!ok) return;
+      if (!confirm('Delete campaign?')) return;
 
-        axios.post(
-          this.parent.url + '/site/actionCampaignItem?auth=' + this.parent.user.auth.data,
-          this.parent.toFormData(item)
-        ).then(() => {
-          this.getCampaign();
-        });
+      axios.post(
+        this.parent.url + '/site/actionCampaign?auth=' + this.parent.user.auth.data,
+        this.parent.toFormData(item)
+      ).then(() => {
+        this.get();
       });
     }
   },
 
   template: `
   <div class="inside-content">
-
-    <Header ref="header" />
-
-    <div id="spinner" v-if="loader"></div>
+    <Header />
 
     <div class="wrapper">
+      <div class="flex panel">
+        <div class="w50">
+          <h1>Campaigns</h1>
+        </div>
 
-      <h1>Campaign #{{ campaignId }}</h1>
+        <div class="w50 ar">
+          <a href="#" class="btn" @click.prevent="parent.formData={};">
+            + New
+          </a>
+        </div>
+      </div>
+
+      <div v-if="loader">Loading...</div>
 
       <div class="table" v-if="items.length">
         <table>
           <thead>
             <tr>
               <th>#</th>
-              <th>Image</th>
-              <th>Size</th>
-              <th>Link</th>
+              <th></th>
+              <th>Title</th>
               <th>Views</th>
               <th>Clicks</th>
               <th>Leads</th>
-              <th>Fraud</th>
               <th>Actions</th>
             </tr>
           </thead>
 
           <tbody>
-            <tr v-for="(item, i) in items" :key="'item-' + item.id">
-
-              <td>{{ i + 1 }}</td>
+            <tr v-for="item in items" :key="item.id">
+              <td>{{ item.id }}</td>
 
               <td>
-                <img
-                  v-if="item.image"
-                  :src="item.image"
-                  style="max-width:80px"
+                <toogle
+                  :modelValue="item.published"
+                  @update:modelValue="togglePublished(item, $event)"
                 />
               </td>
 
-              <td>{{ item.width }}×{{ item.height }}</td>
-
               <td>
-                <a :href="item.link" target="_blank">
-                  {{ item.link }}
-                </a>
+                <router-link :to="'/campaign/' + item.id">
+                  {{ item.title }}
+                </router-link>
               </td>
 
               <td>{{ item.views || 0 }}</td>
               <td>{{ item.clicks || 0 }}</td>
               <td>{{ item.leads || 0 }}</td>
-              <td>{{ item.fclicks || 0 }}</td>
 
-              <td class="actions">
-                <toogle
-                  :modelValue="item.published"
-                  @update:modelValue="togglePublished(item, $event)"
-                />
-
+              <td>
+                <router-link :to="'/campaign/' + item.id">
+                  ✏️
+                </router-link>
+                &nbsp;
                 <a href="#" @click.prevent="remove(item)">
-                  <i class="fas fa-trash-alt"></i>
+                  🗑
                 </a>
               </td>
-
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div class="empty" v-else>
-        No items
+      <div v-else>
+        No campaigns
       </div>
-
     </div>
   </div>
   `
