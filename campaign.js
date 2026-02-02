@@ -3,7 +3,8 @@ export const campaign = {
     return {
       parent: null,
       loader: false,
-      items: []
+      ads: [],
+      campaignTitle: ''
     };
   },
 
@@ -15,19 +16,21 @@ export const campaign = {
       return;
     }
 
-    this.get();
+    this.getAds();
   },
 
   methods: {
-    get() {
+    getAds() {
       this.loader = true;
 
       axios.post(
-        this.parent.url + '/site/getCampaigns?auth=' + this.parent.user.auth.data
+        this.parent.url + '/site/getCampaignAds?auth=' + this.parent.user.auth.data,
+        this.parent.toFormData({
+          campaign: this.$route.params.id
+        })
       ).then(res => {
-        this.items = Array.isArray(res.data.items)
-          ? res.data.items
-          : [];
+        this.ads = Array.isArray(res.data.items) ? res.data.items : [];
+        this.campaignTitle = res.data.title || '';
         this.loader = false;
       }).catch(() => {
         this.parent.logout();
@@ -37,26 +40,22 @@ export const campaign = {
     togglePublished(item, value) {
       item.published = value;
 
-      const fd = this.parent.toFormData(item);
-
       axios.post(
-        this.parent.url + '/site/actionCampaign?auth=' + this.parent.user.auth.data,
-        fd
+        this.parent.url + '/site/actionBanner?auth=' + this.parent.user.auth.data,
+        this.parent.toFormData(item)
       ).catch(() => {
         item.published = !value;
       });
     },
 
     remove(item) {
-      this.parent.formData = item;
-
-      if (!confirm('Delete campaign?')) return;
+      if (!confirm('Delete ad?')) return;
 
       axios.post(
-        this.parent.url + '/site/actionCampaign?auth=' + this.parent.user.auth.data,
+        this.parent.url + '/site/actionBanner?auth=' + this.parent.user.auth.data,
         this.parent.toFormData(item)
       ).then(() => {
-        this.get();
+        this.getAds();
       });
     }
   },
@@ -66,71 +65,86 @@ export const campaign = {
     <Header />
 
     <div class="wrapper">
+      <!-- HEADER -->
       <div class="flex panel">
         <div class="w50">
-          <h1>Campaigns</h1>
+          <h1>{{ campaignTitle }}</h1>
         </div>
 
         <div class="w50 ar">
           <a href="#" class="btn" @click.prevent="parent.formData={};">
-            + New
+            Edit campaign
+          </a>
+          <a href="#" class="btn green" style="margin-left:10px">
+            New +
           </a>
         </div>
       </div>
 
+      <!-- LOADER -->
       <div v-if="loader">Loading...</div>
 
-      <div class="table" v-if="items.length">
+      <!-- ADS TABLE -->
+      <div class="table" v-if="ads.length">
         <table>
           <thead>
             <tr>
-              <th>#</th>
-              <th></th>
-              <th>Title</th>
-              <th>Views</th>
-              <th>Clicks</th>
-              <th>Leads</th>
-              <th>Actions</th>
+              <th class="actions">Actions</th>
+              <th class="id">Fraud<br>clicks</th>
+              <th class="id">Leads</th>
+              <th class="id">Clicks</th>
+              <th class="id">Views</th>
+              <th>Link</th>
+              <th class="id">Size</th>
+              <th class="image">Image</th>
+              <th class="id">#</th>
             </tr>
           </thead>
 
           <tbody>
-            <tr v-for="item in items" :key="item.id">
-              <td>{{ item.id }}</td>
-
-              <td>
-                <toogle
-                  :modelValue="item.published"
-                  @update:modelValue="togglePublished(item, $event)"
-                />
-              </td>
-
-              <td>
-                <router-link :to="'/campaign/' + item.id">
-                  {{ item.title }}
-                </router-link>
-              </td>
-
-              <td>{{ item.views || 0 }}</td>
-              <td>{{ item.clicks || 0 }}</td>
-              <td>{{ item.leads || 0 }}</td>
-
-              <td>
-                <router-link :to="'/campaign/' + item.id">
-                  ✏️
-                </router-link>
+            <tr v-for="ad in ads" :key="ad.id">
+              <td class="actions">
+                ✏️
                 &nbsp;
-                <a href="#" @click.prevent="remove(item)">
-                  🗑
+                <a href="#" @click.prevent="remove(ad)">🗑</a>
+              </td>
+
+              <td class="id">{{ ad.fclicks || 0 }}</td>
+              <td class="id">{{ ad.leads || 0 }}</td>
+              <td class="id">{{ ad.clicks || 0 }}</td>
+              <td class="id">{{ ad.views || 0 }}</td>
+
+              <td>
+                <a :href="ad.link" target="_blank">
+                  {{ ad.link }}
                 </a>
+              </td>
+
+              <td class="id">
+                {{ ad.width }}x{{ ad.height }}
+              </td>
+
+              <td class="image">
+                <img
+                  :src="ad.image"
+                  style="max-width:60px;max-height:60px"
+                >
+              </td>
+
+              <td class="id">
+                <toogle
+                  :modelValue="ad.published"
+                  @update:modelValue="togglePublished(ad, $event)"
+                />
+                {{ ad.id }}
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div v-else>
-        No campaigns
+      <div class="empty" v-else>
+        No ads
       </div>
     </div>
   </div>
