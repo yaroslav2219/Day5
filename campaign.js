@@ -7,7 +7,7 @@ export const campaign = {
       items: [],
 
       form: {
-        link: '',
+        link: 'https://affiliate.yanbasok.com',
         description: '',
         type: '',
         image: null
@@ -198,3 +198,4 @@ export const campaign = {
   </div>
   `
 }
+
