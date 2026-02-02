@@ -1,11 +1,9 @@
 export const campaign = {
   data() {
     return {
-      parent: "https://affiliate.yanbasok.com",
+      parent: null,
       loader: false,
-
       items: [],
-
       form: {
         link: '',
         description: '',
@@ -18,7 +16,7 @@ export const campaign = {
   mounted() {
     this.parent = this.$root
 
-    if (!this.parent.user) {
+    if (!this.parent?.user?.auth?.data) {
       this.parent.logout()
       return
     }
@@ -39,8 +37,9 @@ export const campaign = {
       ).then(res => {
         this.items = Array.isArray(res.data.items) ? res.data.items : []
         this.loader = false
-      }).catch(() => {
-        this.parent.logout()
+      }).catch(err => {
+        console.error(err)
+        this.loader = false
       })
     },
 
@@ -55,8 +54,7 @@ export const campaign = {
     },
 
     onImageChange(e) {
-      const file = e.target.files[0]
-      if (file) this.form.image = file
+      this.form.image = e.target.files[0] || null
     },
 
     save() {
@@ -128,19 +126,13 @@ export const campaign = {
         <tbody>
           <tr v-for="item in items" :key="item.id">
             <td class="id">{{ item.id }}</td>
-
-            <td>
-              <img :src="item.image" style="max-height:60px">
-            </td>
-
+            <td><img :src="item.image" style="max-height:60px"></td>
             <td>{{ item.type }}</td>
             <td>{{ item.link }}</td>
-
             <td class="id">{{ item.views || 0 }}</td>
             <td class="id">{{ item.clicks || 0 }}</td>
             <td class="id">{{ item.leads || 0 }}</td>
             <td class="id">{{ item.fclicks || 0 }}</td>
-
             <td class="actions">
               <a href="#" @click.prevent="del(item)">
                 <i class="fas fa-trash-alt"></i>
@@ -151,16 +143,11 @@ export const campaign = {
       </table>
     </div>
 
-    <div class="empty" v-else>
-      No items
-    </div>
+    <div class="empty" v-else>No items</div>
 
-    <!-- POPUP -->
     <popup ref="new" title="New banner">
       <div class="form inner-form">
-
         <form @submit.prevent="save">
-
           <div class="row">
             <label>Link</label>
             <input type="url" v-model="form.link" required>
@@ -189,14 +176,10 @@ export const campaign = {
           <div class="row">
             <button class="btn">Save</button>
           </div>
-
         </form>
-
       </div>
     </popup>
 
   </div>
   `
 }
-
-
