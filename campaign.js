@@ -1,249 +1,153 @@
 console.log('campaign module loaded');
 
 export const campaign = {
-  name: 'Campaign',
-
   data() {
     return {
       parent: null,
-
-      loader: false,
-
-      items: [],
-
-      date: '',
-      date2: '',
-
-      iChart: -1,
-      chart: null,
+      loader: 0,
+      campaignId: null,
+      items: []
     };
   },
 
   mounted() {
     this.parent = this.$root;
+    this.campaignId = this.$route.params.id;
 
-    if (!this.parent?.user) {
+    if (!this.parent.user) {
       this.parent.logout();
       return;
     }
 
-    this.setDates();
-    this.getCampaigns();
+    this.getCampaign();
   },
 
   methods: {
-    /* ===================== */
-    /* DATES */
-    /* ===================== */
-    setDates() {
-      const now = new Date();
-      const y = now.getFullYear();
-      const m = now.getMonth();
+    getCampaign() {
+      this.loader = 1;
 
-      this.date  = new Date(y, m, 1).toISOString().slice(0, 10);
-      this.date2 = new Date(y, m + 1, 0).toISOString().slice(0, 10);
-    },
+      const fd = new FormData();
+      fd.append('id', this.campaignId);
 
-    /* ===================== */
-    /* API */
-    /* ===================== */
-    getCampaigns() {
-      this.loader = true;
-
-      axios
-        .post(
-          this.parent.url +
-            '/site/getCampaigns?auth=' +
-            this.parent.user.auth.data
-        )
-        .then(res => {
-          this.items = Array.isArray(res.data.items)
-            ? res.data.items.filter(i => i && i.id)
-            : [];
-        })
-        .catch(() => this.parent.logout())
-        .finally(() => (this.loader = false));
+      axios.post(
+        this.parent.url + '/site/getCampaign?auth=' + this.parent.user.auth.data,
+        fd
+      )
+      .then(res => {
+        this.items = Array.isArray(res.data.items)
+          ? res.data.items.filter(i => i && i.id)
+          : [];
+      })
+      .finally(() => {
+        this.loader = 0;
+      });
     },
 
     togglePublished(item, value) {
       const old = item.published;
       item.published = value;
 
-      axios
-        .post(
-          this.parent.url +
-            '/site/actionCampaign?auth=' +
-            this.parent.user.auth.data,
-          this.parent.toFormData(item)
-        )
-        .catch(() => {
-          item.published = old;
-        });
+      axios.post(
+        this.parent.url + '/site/actionCampaignItem?auth=' + this.parent.user.auth.data,
+        this.parent.toFormData(item)
+      ).catch(() => {
+        item.published = old;
+      });
     },
 
-    /* ===================== */
-    /* CRUD */
-    /* ===================== */
-    save() {
-      if (!this.parent.formData?.title) return;
-
-      axios
-        .post(
-          this.parent.url +
-            '/site/actionCampaign?auth=' +
-            this.parent.user.auth.data,
-          this.parent.toFormData(this.parent.formData)
-        )
-        .then(() => {
-          this.$refs.new.active = false;
-          this.getCampaigns();
-        });
-    },
-
-    async remove(item) {
-      if (
-        !(await this.$refs.header.$refs.msg.confirmFun(
-          'Confirm',
-          'Delete campaign?'
-        ))
-      )
-        return;
-
+    remove(item) {
       this.parent.formData = { ...item };
 
-      axios
-        .post(
-          this.parent.url +
-            '/site/actionCampaign?auth=' +
-            this.parent.user.auth.data,
-          this.parent.toFormData(this.parent.formData)
-        )
-        .then(() => this.getCampaigns());
-    },
+      this.$refs.header.$refs.msg.confirmFun(
+        'Confirm',
+        'Delete this item?'
+      ).then(ok => {
+        if (!ok) return;
 
-    /* ===================== */
-    /* CHART */
-    /* ===================== */
-    openChart(item, index) {
-      this.iChart = index;
-      this.$refs.chart.active = true;
-
-      this.$nextTick(() => this.renderChart(item));
-    },
-
-    renderChart(item) {
-      if (!item?.line) return;
-
-      const labels = [];
-      const clicks = [];
-      const views = [];
-
-      Object.keys(item.line).forEach(d => {
-        labels.push(d);
-        clicks.push(item.line[d].clicks || 0);
-        views.push(item.line[d].views || 0);
+        axios.post(
+          this.parent.url + '/site/actionCampaignItem?auth=' + this.parent.user.auth.data,
+          this.parent.toFormData(item)
+        ).then(() => {
+          this.getCampaign();
+        });
       });
-
-      if (this.chart) {
-        this.chart.destroy();
-      }
-
-      const ctx = document.getElementById('myChart');
-      if (!ctx) return;
-
-      this.chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            {
-              label: 'Clicks',
-              data: clicks,
-            },
-            {
-              label: 'Views',
-              data: views,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { display: false },
-          },
-        },
-      });
-    },
+    }
   },
 
   template: `
-<div class="inside-content">
-  <Header ref="header" />
+  <div class="inside-content">
 
-  <div v-if="loader" id="spinner"></div>
+    <Header ref="header" />
 
-  <div class="table" v-if="items.length">
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th></th>
-          <th>Title</th>
-          <th>Views</th>
-          <th>Clicks</th>
-          <th>Leads</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
+    <div id="spinner" v-if="loader"></div>
 
-      <tbody>
-        <tr v-for="(item,i) in items" :key="item.id">
-          <td>{{ item.id }}</td>
+    <div class="wrapper">
 
-          <td>
-            <toogle
-              :modelValue="item.published"
-              @update:modelValue="togglePublished(item,$event)"
-            />
-          </td>
+      <h1>Campaign #{{ campaignId }}</h1>
 
-          <td>
-            <router-link :to="'/campaign/' + item.id">
-              {{ item.title }}
-            </router-link>
-          </td>
+      <div class="table" v-if="items.length">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Image</th>
+              <th>Size</th>
+              <th>Link</th>
+              <th>Views</th>
+              <th>Clicks</th>
+              <th>Leads</th>
+              <th>Fraud</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
 
-          <td>{{ item.views }}</td>
-          <td>{{ item.clicks || 0 }}</td>
-          <td>{{ item.leads || 0 }}</td>
+          <tbody>
+            <tr v-for="(item, i) in items" :key="'item-' + item.id">
 
-          <td class="actions">
-            <a href="#" @click.prevent="openChart(item,i)">
-              📊
-            </a>
-            <a href="#" @click.prevent="remove(item)">
-              🗑
-            </a>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+              <td>{{ i + 1 }}</td>
+
+              <td>
+                <img
+                  v-if="item.image"
+                  :src="item.image"
+                  style="max-width:80px"
+                />
+              </td>
+
+              <td>{{ item.width }}×{{ item.height }}</td>
+
+              <td>
+                <a :href="item.link" target="_blank">
+                  {{ item.link }}
+                </a>
+              </td>
+
+              <td>{{ item.views || 0 }}</td>
+              <td>{{ item.clicks || 0 }}</td>
+              <td>{{ item.leads || 0 }}</td>
+              <td>{{ item.fclicks || 0 }}</td>
+
+              <td class="actions">
+                <toogle
+                  :modelValue="item.published"
+                  @update:modelValue="togglePublished(item, $event)"
+                />
+
+                <a href="#" @click.prevent="remove(item)">
+                  <i class="fas fa-trash-alt"></i>
+                </a>
+              </td>
+
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="empty" v-else>
+        No items
+      </div>
+
+    </div>
   </div>
-
-  <div v-else class="empty">
-    No campaigns
-  </div>
-
-  <popup ref="chart" fullscreen title="Statistics">
-    <canvas id="myChart"></canvas>
-  </popup>
-
-  <popup ref="new" title="Campaign">
-    <form @submit.prevent="save">
-      <input v-model="parent.formData.title" placeholder="Title" required />
-      <button class="btn">Save</button>
-    </form>
-  </popup>
-</div>
-`,
+  `
 };
