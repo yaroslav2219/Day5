@@ -26,22 +26,20 @@ export const campaign = {
 
   methods: {
 
-    get() {
-      this.loader = true
-
-      axios.post(
-        this.parent.url + '/site/getCampaign?auth=' + this.parent.user.auth.data,
-        this.parent.toFormData({
-          campaign: this.$route.params.id
-        })
-      ).then(res => {
-        this.items = Array.isArray(res.data.items) ? res.data.items : []
-        this.loader = false
-      }).catch(err => {
-        console.error(err)
-        this.loader = false
-      })
-    },
+  get() {
+  this.items = [
+    {
+      id: 1,
+      image: 'https://via.placeholder.com/300x250',
+      type: '300x250',
+      link: 'https://dreamview-seo.co-il',
+      views: 120,
+      clicks: 15,
+      leads: 3,
+      fclicks: 0
+    }
+  ]
+}
 
     openNew() {
       this.form = {
@@ -183,3 +181,4 @@ export const campaign = {
   </div>
   `
 }
+
