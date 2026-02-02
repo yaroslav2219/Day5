@@ -39,7 +39,7 @@ export const campaign = {
       fclicks: 0
     }
   ]
-}
+},
 
     openNew() {
       this.form = {
@@ -181,4 +181,5 @@ export const campaign = {
   </div>
   `
 }
+
 
