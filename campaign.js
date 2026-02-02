@@ -1,7 +1,7 @@
 export const campaign = {
   data() {
     return {
-      parent: null,
+      parent: "https://affiliate.yanbasok.com",
       loader: false,
 
       items: [],
