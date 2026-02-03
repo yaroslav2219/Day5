@@ -4,7 +4,7 @@ export const campaign = {
       parent: null,
       loader: false,
       items: [],
-      newPopupActive: false, // управління попапом
+      newPopupActive: false, 
       form: {
         link: '',
         description: '',
@@ -15,27 +15,25 @@ export const campaign = {
   },
 
   mounted() {
-    this.parent = this.$root
-    const user = this.parent && this.parent.user ? this.parent.user : null
+    this.parent = this.$root;
+    const user = this.parent && this.parent.user ? this.parent.user : null;
 
     if (!user || !user.id) {
-      if (user && user.auth && user.auth.data) {
-        user.id = user.auth.data
-      }
+      if (user && user.auth && user.auth.data) user.id = user.auth.data;
     }
 
     if (!user || !user.id) {
-      console.warn('NO USER ID', user)
-      this.parent.logout()
-      return
+      console.warn('NO USER ID', user);
+      this.parent.logout();
+      return;
     }
 
-    this.get() // завантажуємо початкові банери
+    this.get();
   },
 
   methods: {
     get() {
-      // тимчасові дані, заміниш на реальний запит до сервера
+      // Тимчасові дані
       this.items = [
         {
           id: 1,
@@ -47,53 +45,53 @@ export const campaign = {
           leads: 3,
           fclicks: 0
         }
-      ]
+      ];
     },
 
     openNew() {
-      this.form = { link: '', description: '', type: '', image: null }
-      this.newPopupActive = true
+      this.form = { link: '', description: '', type: '', image: null };
+      this.newPopupActive = true;
     },
 
     onImageChange(e) {
-      this.form.image = e.target.files[0] || null
+      this.form.image = e.target.files[0] || null;
     },
 
     save() {
       if (!this.form.link || !this.form.type || !this.form.image) {
-        alert('Заповніть всі обов’язкові поля та завантажте зображення')
-        return
+        alert('Заповніть всі обов’язкові поля та завантажте зображення');
+        return;
       }
 
-      const data = new FormData()
-      data.append('campaign', this.$route.params.id)
-      data.append('link', this.form.link)
-      data.append('description', this.form.description)
-      data.append('type', this.form.type)
-      data.append('image', this.form.image)
+      const data = new FormData();
+      data.append('campaign', this.$route.params.id);
+      data.append('link', this.form.link);
+      data.append('description', this.form.description);
+      data.append('type', this.form.type);
+      data.append('image', this.form.image);
 
-      this.loader = true
+      this.loader = true;
       axios.post(this.parent.url + '/site/actionBanner?auth=' + this.parent.user.id, data)
         .then(() => {
-          this.loader = false
-          this.newPopupActive = false
-          this.get() // перезавантажуємо список банерів
+          this.loader = false;
+          this.newPopupActive = false;
+          this.get();
         })
         .catch(err => {
-          console.error(err)
-          this.loader = false
-          alert('Помилка при збереженні банера')
-        })
+          console.error(err);
+          this.loader = false;
+          alert('Помилка при збереженні банера');
+        });
     },
 
     del(item) {
-      if (!confirm('Видалити банер?')) return
+      if (!confirm('Видалити банер?')) return;
 
       axios.post(this.parent.url + '/site/actionBanner?auth=' + this.parent.user.id,
         this.parent.toFormData({ id: item.id, delete: 1 })
       )
       .then(() => this.get())
-      .catch(err => console.error(err))
+      .catch(err => console.error(err));
     }
   },
 
@@ -104,15 +102,17 @@ export const campaign = {
 
     <div v-if="loader" id="spinner"></div>
 
+    <!-- Панель з кнопкою New -->
     <div class="panel flex">
       <h1 class="w50">Campaign</h1>
       <div class="w50 ar">
-        <a href="#" class="btnS" @click.prevent="openNew">
+        <button class="btnS" @click="openNew">
           <i class="fas fa-plus"></i> New
-        </a>
+        </button>
       </div>
     </div>
 
+    <!-- Таблиця банерів -->
     <div class="table" v-if="items.length">
       <table>
         <thead>
@@ -150,9 +150,18 @@ export const campaign = {
 
     <div class="empty" v-else>No items</div>
 
-    <popup v-model:active="newPopupActive" title="New banner">
-      <div class="form inner-form">
-        <form @submit.prevent="save">
+    <!-- Затемнення -->
+    <div v-if="newPopupActive" class="popup-back" @click="newPopupActive = false"></div>
+
+    <!-- Попап -->
+    <div v-if="newPopupActive" class="popup">
+      <div class="head-popup">
+        <span class="head-title">New banner</span>
+        <a href="#" @click.prevent="newPopupActive = false">&times;</a>
+      </div>
+
+      <div class="popup-inner">
+        <form @submit.prevent="save" class="inner-form">
           <div class="row">
             <label>Link</label>
             <input type="url" v-model="form.link" required>
@@ -179,7 +188,7 @@ export const campaign = {
           </div>
         </form>
       </div>
-    </popup>
+    </div>
 
   </div>
   `
