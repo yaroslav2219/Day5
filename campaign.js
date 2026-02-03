@@ -1,5 +1,5 @@
 export const campaign = {
-  data() {
+  data: function() {
     return {
       parent: null,
       loader: false,
@@ -13,21 +13,24 @@ export const campaign = {
     }
   },
 
-  mounted() {
+  mounted: function () {
     this.parent = this.$root
+    var user = this.parent && this.parent.user ? this.parent.user : null
 
-    if (!this.parent?.user?.id && this.parent?.user?.auth?.data) {
-      this.parent.user.id = this.parent.user.auth.data
+    if (!user || !user.id) {
+      if (user && user.auth && user.auth.data) {
+        user.id = user.auth.data
+      }
     }
 
-    if (!this.parent?.user?.id) {
-      console.warn('NO USER ID', this.parent?.user)
+    if (!user || !user.id) {
+      console.warn('NO USER ID', user)
       this.parent.logout()
       return
-  }
+    }
 
   methods: {
-    get() {
+    get: function() {
       // тимчасові дані
       this.items = [
         {
@@ -43,7 +46,7 @@ export const campaign = {
       ]
     },
 
-    openNew() {
+  openNew: function () {
       this.form = {
         link: '',
         description: '',
@@ -53,31 +56,33 @@ export const campaign = {
       this.$refs.new.active = 1
     },
 
-    onImageChange(e) {
+    onImageChange: function (e) {
       this.form.image = e.target.files[0] || null
     },
 
-    save() {
+    save: function () {
       if (!this.form.link || !this.form.type || !this.form.image) return
 
-      const data = new FormData()
+      var data = new FormData()
       data.append('campaign', this.$route.params.id)
       data.append('link', this.form.link)
       data.append('description', this.form.description)
       data.append('type', this.form.type)
       data.append('image', this.form.image)
-
+      
+           var self = this
       axios.post(
-        this.parent.url + '/site/actionBanner?auth=' + this.parent.user.id,
-        data
-      ).then(() => {
-        this.$refs.new.active = 0
-        this.get()
-      })
+          this.parent.url + '/site/actionBanner?auth=' + this.parent.user.id,
+          data
+        )
+        .then(function () {
+          self.$refs.new.active = 0
+          self.get()
+        })
     },
 
-  getCampaignBannersChart() {
-      const data = this.parent.toFormData(this.parent.formData)
+ getCampaignBannersChart: function () {
+      var data = this.parent.toFormData(this.parent.formData)
 
       if (this.date1 !== '') data.append('date1', this.date1)
       if (this.date2 !== '') data.append('date2', this.date2)
@@ -86,6 +91,7 @@ export const campaign = {
 
       this.loader = 1
 
+      var self = this
       axios
         .post(
           this.parent.url +
@@ -93,34 +99,37 @@ export const campaign = {
             this.parent.user.id,
           data
         )
-        .then(response => {
-          this.parent.formData.views = response.data.items.views
-          this.parent.formData.clicks = response.data.items.clicks
-          this.parent.formData.line = response.data.items.line
-          this.parent.formData.sites = response.data.items.sites
+        .then(function (response) {
+          self.parent.formData.views = response.data.items.views
+          self.parent.formData.clicks = response.data.items.clicks
+          self.parent.formData.line = response.data.items.line
+          self.parent.formData.sites = response.data.items.sites
 
-          this.line(response.data.items)
-          this.loader = 0
+          self.line(response.data.items)
+          self.loader = 0
         })
-        .catch(error => {
+        .catch(function (error) {
           console.error(error)
-          this.loader = 0
+          self.loader = 0
+          // ❌ НЕ логаутим автоматично
         })
     },
-    
-    del(item) {
+
+    del: function (item) {
       if (!confirm('Delete banner?')) return
 
-      axios.post(
-        this.parent.url + '/site/actionBanner?auth=' + this.parent.user.id,
-        this.parent.toFormData({
-          id: item.id,
-          delete: 1
+      var self = this
+      axios
+        .post(
+          this.parent.url + '/site/actionBanner?auth=' + this.parent.user.id,
+          this.parent.toFormData({
+            id: item.id,
+            delete: 1
+          })
+        )
+        .then(function () {
+          self.get()
         })
-      ).then(() => {
-        this.get()
-      })
-    }
   },
 
   template: `
@@ -215,6 +224,7 @@ export const campaign = {
   </div>
   `
 }
+
 
 
 
