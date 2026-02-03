@@ -170,13 +170,14 @@ mounted() {
           grid: { drawOnChartArea: false } 
         }
       }
-    },
+    }
+  });
+  },
         options: {
           responsive: true,
           plugins: { legend: { display: false } },
-        },
-      });
-    },
+        }
+    }
   },
 
   template: `
@@ -268,6 +269,7 @@ mounted() {
 </div>
 `,
 };
+
 
 
 
