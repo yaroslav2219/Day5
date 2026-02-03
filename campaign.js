@@ -104,7 +104,7 @@ export const campaign = {
     self.loader = 0;
     // ❌ НЕ логаутим автоматично
   });
-}
+},
 
     del(item) {
       if (!confirm('Delete banner?')) return
@@ -213,5 +213,6 @@ export const campaign = {
   </div>
   `
 }
+
 
 
