@@ -118,6 +118,14 @@ mounted() {
       this.iChart = index;
       this.$refs.chart.active = true;
 
+      if (!item.line) {
+    item.line = {
+      "2026-02-01": { views: 1200, clicks: 30 },
+      "2026-02-02": { views: 980, clicks: 25 },
+      "2026-02-03": { views: 1500, clicks: 40 }
+    };
+  }
+
       this.$nextTick(() => this.drawChart(item));
     },
 
@@ -266,6 +274,7 @@ mounted() {
 </div>
 `,
 };
+
 
 
 
