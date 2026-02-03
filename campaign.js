@@ -74,6 +74,38 @@ export const campaign = {
       })
     },
 
+    getCampaignBannersChart: function () {
+  var self = this;
+  var data = self.parent.toFormData(self.parent.formData);
+
+  if (this.date1 !== "") data.append('date1', this.date1);
+  if (this.date2 !== "") data.append('date2', this.date2);
+  if (this.q !== "") data.append('q', this.q);
+  if (this.sort !== "") data.append('sort', this.sort);
+
+  self.loader = 1;
+
+  axios.post(
+    self.parent.url + "/site/getCampaignBannersChart?auth=" + self.parent.user.id,
+    data
+  )
+  .then(function (response) {
+
+    self.parent.formData.views  = response.data.items.views;
+    self.parent.formData.clicks = response.data.items.clicks;
+    self.parent.formData.line   = response.data.items.line;
+    self.parent.formData.sites  = response.data.items.sites;
+
+    self.line(response.data.items);
+    self.loader = 0;
+  })
+  .catch(function (error) {
+    console.error(error);
+    self.loader = 0;
+    // ❌ НЕ логаутим автоматично
+  });
+}
+
     del(item) {
       if (!confirm('Delete banner?')) return
 
@@ -181,4 +213,5 @@ export const campaign = {
   </div>
   `
 }
+
 
