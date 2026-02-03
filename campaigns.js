@@ -120,9 +120,9 @@ mounted() {
 
       if (!item.line) {
     item.line = {
-      "2026-02-01": { views: 1200, clicks: 30 },
-      "2026-02-02": { views: 980, clicks: 25 },
-      "2026-02-03": { views: 1500, clicks: 40 }
+      "2026-02-01": { views: 174660, clicks: 215 },
+      "2026-02-02": { views: 173197, clicks: 165 },
+      "2026-02-03": { views: 0, clicks: 0 }
     };
   }
 
@@ -274,6 +274,7 @@ mounted() {
 </div>
 `,
 };
+
 
 
 
