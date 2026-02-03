@@ -120,35 +120,59 @@ mounted() {
       this.$nextTick(() => this.drawChart(item));
     },
 
-    drawChart(item) {
-      if (!item?.line) return;
+  drawChart(item) {
+  if (!item?.line) return;
 
-      const labels = [];
-      const clicks = [];
-      const views = [];
+  const labels = [];
+  const clicks = [];
+  const views = [];
+  const ctr = [];
 
-      Object.keys(item.line).forEach(d => {
-        labels.push(d);
-        clicks.push(item.line[d].clicks);
-        views.push(item.line[d].views);
-      });
+  Object.keys(item.line).forEach(date => {
+    const d = item.line[date];
+    labels.push(date);
+    clicks.push(d.clicks || 0);
+    views.push(d.views || 0);
+    ctr.push(d.views ? ((d.clicks / d.views) * 100).toFixed(2) : 0);
+  });
 
-      if (this.chart) this.chart.destroy();
+  if (this.chart) this.chart.destroy();
 
-      this.chart = new Chart(this.$refs.chartCanvas, {
-        type: 'line',
-        data: {
-          labels,
-          datasets: [
-            { label: 'Clicks', data: clicks, borderColor: '#00599D' },
-            {
-              label: 'Views',
-              data: views,
-              borderColor: '#5000B8',
-              yAxisID: 'y2',
-            },
-          ],
+  this.chart = new Chart(this.$refs.chartCanvas, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        { label: "Views", data: views, backgroundColor: "rgba(54,162,235,0.6)" },
+        { label: "Clicks", data: clicks, backgroundColor: "rgba(255,99,132,0.6)" },
+        { 
+          label: "CTR (%)", 
+          data: ctr, 
+          type: "line", 
+          borderColor: "rgba(255,206,86,1)", 
+          backgroundColor: "rgba(255,206,86,0.2)", 
+          yAxisID: "y1",
+          tension: 0.3
         },
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: "index", intersect: false },
+      stacked: false,
+      plugins: { legend: { display: true } },
+      scales: {
+        y: { beginAtZero: true, title: { display: true, text: "Count" } },
+        y1: { 
+          beginAtZero: true, 
+          position: "right", 
+          title: { display: true, text: "CTR (%)" },
+          grid: { drawOnChartArea: false } 
+        }
+      }
+    }
+  });
+},
         options: {
           responsive: true,
           plugins: { legend: { display: false } },
@@ -246,6 +270,7 @@ mounted() {
 </div>
 `,
 };
+
 
 
 
