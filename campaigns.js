@@ -29,9 +29,7 @@ export const campaigns = {
   },
 
   methods: {
-    /* =======================
-       DATES
-    ======================= */
+
     setDates() {
       const now = new Date();
       const first = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -41,30 +39,33 @@ export const campaigns = {
       this.date2 = last.toISOString().slice(0, 10);
     },
 
-    /* =======================
-       GET CAMPAIGNS
-    ======================= */
-    async get() {
-      this.loader = true;
+  async get() {
+  this.loader = true;
 
-      try {
-        const res = await axios.post(
-          `${this.parent.url}/site/getCampaigns?auth=${this.parent.user.auth.data}`
-        );
+  try {
+    const res = await axios.post(
+      `${this.parent.url}/site/getCampaigns?auth=${this.parent.user.auth.data}`,
+      this.parent.toFormData({
+        date: this.date,
+        date2: this.date2,
+      })
+    );
 
-        this.items = Array.isArray(res.data.items)
-          ? res.data.items.filter(i => i && i.id)
-          : [];
-      } catch {
-        this.parent.logout();
-      } finally {
-        this.loader = false;
-      }
-    },
+    this.items = Array.isArray(res.data.items)
+      ? res.data.items.filter(i => i && i.id)
+      : [];
+  } catch (e) {
+    if (e.response && e.response.status === 401) {
+      this.parent.logout();
+    } else {
+      console.warn('Campaigns load failed:', e.message);
+    }
+  } finally {
+    this.loader = false;
+  }
+},
 
-    /* =======================
-       TOGGLE
-    ======================= */
+
     async togglePublished(item, value) {
       const old = item.published;
       item.published = value;
@@ -79,9 +80,6 @@ export const campaigns = {
       }
     },
 
-    /* =======================
-       CREATE / EDIT
-    ======================= */
     async action() {
       if (!this.parent.formData?.title) return;
 
@@ -99,9 +97,6 @@ export const campaigns = {
       }
     },
 
-    /* =======================
-       DELETE
-    ======================= */
     async del(item) {
       if (
         !(await this.$refs.header.$refs.msg.confirmFun(
@@ -124,9 +119,6 @@ export const campaigns = {
       }
     },
 
-    /* =======================
-       CHART
-    ======================= */
     openChart(item, index) {
       this.iChart = index;
       this.$refs.chart.active = true;
@@ -260,3 +252,4 @@ export const campaigns = {
 </div>
 `,
 };
+
