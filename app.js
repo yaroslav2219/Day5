@@ -28,11 +28,21 @@ document.addEventListener('DOMContentLoaded', function(){
         methods:{
             init(){
                 var self = this;
-                if(window.localStorage.getItem('user')) self.user = JSON.parse(window.localStorage.getItem('user'));
+                if(window.localStorage.getItem('user')) {
+                    self.user = JSON.parse(window.localStorage.getItem('user'));
+                    if(!self.user.id && self.user?.auth?.data){
+                        self.user.id = self.user.auth.data;
+                        window.localStorage.setItem('user', JSON.stringify(self.user));
+                    }
+                }
 
                 router.isReady().then(() => {
                     if(window.localStorage.getItem("user")){
-                        self.user = JSON.parse(window.localStorage.getItem("user"));
+                         self.user = JSON.parse(window.localStorage.getItem("user"));
+                        if(!self.user.id && self.user?.auth?.data){
+                            self.user.id = self.user.auth.data;
+                            window.localStorage.setItem('user', JSON.stringify(self.user));
+                        }
                         if(self.$route['path']=='/' && self.user.type=='admin'){
                             self.page('/campaigns');
                         }else if(['/campaigns','/campaign','/users','/user'].includes(self.$route['path']) && self.user.type!='admin'){
@@ -108,6 +118,7 @@ logout() {
     app.use(router)
     .mount('#content')
 });
+
 
 
 
