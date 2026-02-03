@@ -114,6 +114,7 @@ mounted() {
     },
 
     openChart(item, index) {
+      console.log('OPEN CHART ITEM:', item);
       this.iChart = index;
       this.$refs.chart.active = true;
 
@@ -265,6 +266,7 @@ mounted() {
 </div>
 `,
 };
+
 
 
 
