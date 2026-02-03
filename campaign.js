@@ -4,16 +4,13 @@ export const campaign = {
       parent: null,
       loader: false,
       items: [],
+      newPopupActive: false, // управління попапом
       form: {
         link: '',
         description: '',
         type: '',
         image: null
-      },
-      date1: '',
-      date2: '',
-      q: '',
-      sort: ''
+      }
     }
   },
 
@@ -33,13 +30,12 @@ export const campaign = {
       return
     }
 
-    // отримати початкові дані
-    this.get()
+    this.get() // завантажуємо початкові банери
   },
 
   methods: {
     get() {
-      // тимчасові дані
+      // тимчасові дані, заміниш на реальний запит до сервера
       this.items = [
         {
           id: 1,
@@ -55,13 +51,8 @@ export const campaign = {
     },
 
     openNew() {
-      this.form = {
-        link: '',
-        description: '',
-        type: '',
-        image: null
-      }
-      this.$refs.new.active = 1
+      this.form = { link: '', description: '', type: '', image: null }
+      this.newPopupActive = true
     },
 
     onImageChange(e) {
@@ -69,7 +60,10 @@ export const campaign = {
     },
 
     save() {
-      if (!this.form.link || !this.form.type || !this.form.image) return
+      if (!this.form.link || !this.form.type || !this.form.image) {
+        alert('Заповніть всі обов’язкові поля та завантажте зображення')
+        return
+      }
 
       const data = new FormData()
       data.append('campaign', this.$route.params.id)
@@ -77,59 +71,29 @@ export const campaign = {
       data.append('description', this.form.description)
       data.append('type', this.form.type)
       data.append('image', this.form.image)
-      
-      const self = this
-      axios.post(
-        this.parent.url + '/site/actionBanner?auth=' + this.parent.user.id,
-        data
-      )
-      .then(function () {
-        self.$refs.new.active = 0
-        self.get()
-      })
-    },
-
-    getCampaignBannersChart() {
-      const data = this.parent.toFormData(this.parent.formData)
-
-      if (this.date1) data.append('date1', this.date1)
-      if (this.date2) data.append('date2', this.date2)
-      if (this.q) data.append('q', this.q)
-      if (this.sort) data.append('sort', this.sort)
 
       this.loader = true
-
-      const self = this
-      axios.post(
-        this.parent.url + '/site/getCampaignBannersChart?auth=' + this.parent.user.id,
-        data
-      )
-      .then(function (response) {
-        self.parent.formData.views = response.data.items.views
-        self.parent.formData.clicks = response.data.items.clicks
-        self.parent.formData.line = response.data.items.line
-        self.parent.formData.sites = response.data.items.sites
-
-        self.line(response.data.items)
-        self.loader = false
-      })
-      .catch(function (error) {
-        console.error(error)
-        self.loader = false
-      })
+      axios.post(this.parent.url + '/site/actionBanner?auth=' + this.parent.user.id, data)
+        .then(() => {
+          this.loader = false
+          this.newPopupActive = false
+          this.get() // перезавантажуємо список банерів
+        })
+        .catch(err => {
+          console.error(err)
+          this.loader = false
+          alert('Помилка при збереженні банера')
+        })
     },
 
     del(item) {
-      if (!confirm('Delete banner?')) return
+      if (!confirm('Видалити банер?')) return
 
-      const self = this
-      axios.post(
-        this.parent.url + '/site/actionBanner?auth=' + this.parent.user.id,
+      axios.post(this.parent.url + '/site/actionBanner?auth=' + this.parent.user.id,
         this.parent.toFormData({ id: item.id, delete: 1 })
       )
-      .then(function () {
-        self.get()
-      })
+      .then(() => this.get())
+      .catch(err => console.error(err))
     }
   },
 
@@ -164,7 +128,6 @@ export const campaign = {
             <th class="actions"></th>
           </tr>
         </thead>
-
         <tbody>
           <tr v-for="item in items" :key="item.id">
             <td class="id">{{ item.id }}</td>
@@ -187,19 +150,17 @@ export const campaign = {
 
     <div class="empty" v-else>No items</div>
 
-    <popup ref="new" title="New banner">
+    <popup v-model:active="newPopupActive" title="New banner">
       <div class="form inner-form">
         <form @submit.prevent="save">
           <div class="row">
             <label>Link</label>
             <input type="url" v-model="form.link" required>
           </div>
-
           <div class="row">
             <label>Description</label>
             <input type="text" v-model="form.description">
           </div>
-
           <div class="row">
             <label>Size</label>
             <select v-model="form.type" required>
@@ -209,12 +170,10 @@ export const campaign = {
               <option value="160x600">160x600</option>
             </select>
           </div>
-
           <div class="row">
             <label>Image</label>
             <input type="file" accept="image/*" @change="onImageChange" required>
           </div>
-
           <div class="row">
             <button class="btn">Save</button>
           </div>
@@ -225,12 +184,3 @@ export const campaign = {
   </div>
   `
 }
-
-
-
-
-
-
-
-
-
