@@ -3,9 +3,9 @@ export const campaign = {
     return {
       parent: null,
       loader: false,
-      items: [],
-      newPopupActive: false, 
-      form: {
+      items: [],               // список банерів
+      newPopupActive: false,   // показ попапу
+      form: {                  // форма банера
         link: '',
         description: '',
         type: '',
@@ -16,24 +16,23 @@ export const campaign = {
 
   mounted() {
     this.parent = this.$root;
-    const user = this.parent && this.parent.user ? this.parent.user : null;
 
+    const user = this.parent && this.parent.user ? this.parent.user : null;
     if (!user || !user.id) {
       if (user && user.auth && user.auth.data) user.id = user.auth.data;
     }
-
     if (!user || !user.id) {
       console.warn('NO USER ID', user);
       this.parent.logout();
       return;
     }
 
-    this.get();
+    this.get(); // завантаження початкових банерів
   },
 
   methods: {
+    // Завантаження банерів (тимчасово статичні)
     get() {
-      // Тимчасові дані
       this.items = [
         {
           id: 1,
@@ -48,50 +47,47 @@ export const campaign = {
       ];
     },
 
+    // Відкрити попап
     openNew() {
       this.form = { link: '', description: '', type: '', image: null };
       this.newPopupActive = true;
     },
 
+    // Зміна зображення
     onImageChange(e) {
       this.form.image = e.target.files[0] || null;
     },
 
+    // Збереження банера
     save() {
       if (!this.form.link || !this.form.type || !this.form.image) {
         alert('Заповніть всі обов’язкові поля та завантажте зображення');
         return;
       }
 
-      const data = new FormData();
-      data.append('campaign', this.$route.params.id);
-      data.append('link', this.form.link);
-      data.append('description', this.form.description);
-      data.append('type', this.form.type);
-      data.append('image', this.form.image);
+      // Створюємо новий банер локально для миттєвого відображення
+      const newId = this.items.length ? Math.max(...this.items.map(i => i.id)) + 1 : 1;
+      const newItem = {
+        id: newId,
+        link: this.form.link,
+        description: this.form.description,
+        type: this.form.type,
+        views: 0,
+        clicks: 0,
+        leads: 0,
+        fclicks: 0,
+        image: URL.createObjectURL(this.form.image) // тимчасово відображаємо локальне фото
+      };
 
-      this.loader = true;
-      axios.post(this.parent.url + '/site/actionBanner?auth=' + this.parent.user.id, data)
-        .then(() => {
-          this.loader = false;
-          this.newPopupActive = false;
-          this.get();
-        })
-        .catch(err => {
-          console.error(err);
-          this.loader = false;
-          alert('Помилка при збереженні банера');
-        });
+      this.items.push(newItem);          // додаємо в таблицю
+      this.newPopupActive = false;       // закриваємо попап
+      this.form = { link: '', description: '', type: '', image: null }; // очищаємо форму
     },
 
+    // Видалення банера
     del(item) {
       if (!confirm('Видалити банер?')) return;
-
-      axios.post(this.parent.url + '/site/actionBanner?auth=' + this.parent.user.id,
-        this.parent.toFormData({ id: item.id, delete: 1 })
-      )
-      .then(() => this.get())
-      .catch(err => console.error(err));
+      this.items = this.items.filter(i => i.id !== item.id);
     }
   },
 
@@ -100,9 +96,6 @@ export const campaign = {
 
     <Header />
 
-    <div v-if="loader" id="spinner"></div>
-
-    <!-- Панель з кнопкою New -->
     <div class="panel flex">
       <h1 class="w50">Campaign</h1>
       <div class="w50 ar">
@@ -112,7 +105,6 @@ export const campaign = {
       </div>
     </div>
 
-    <!-- Таблиця банерів -->
     <div class="table" v-if="items.length">
       <table>
         <thead>
@@ -134,10 +126,10 @@ export const campaign = {
             <td><img :src="item.image" style="max-height:60px"></td>
             <td>{{ item.type }}</td>
             <td>{{ item.link }}</td>
-            <td class="id">{{ item.views || 0 }}</td>
-            <td class="id">{{ item.clicks || 0 }}</td>
-            <td class="id">{{ item.leads || 0 }}</td>
-            <td class="id">{{ item.fclicks || 0 }}</td>
+            <td class="id">{{ item.views }}</td>
+            <td class="id">{{ item.clicks }}</td>
+            <td class="id">{{ item.leads }}</td>
+            <td class="id">{{ item.fclicks }}</td>
             <td class="actions">
               <a href="#" @click.prevent="del(item)">
                 <i class="fas fa-trash-alt"></i>
