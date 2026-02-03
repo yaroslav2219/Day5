@@ -16,17 +16,18 @@ export const campaigns = {
     };
   },
 
-  mounted() {
-    this.parent = this.$root;
+ mounted() {
+  this.parent = this.$root;
 
-    if (!this.parent?.user) {
-      this.parent.logout();
-      return;
-    }
+  if (!this.parent?.user?.auth?.data) {
+    console.warn('NO AUTH DATA', this.parent.user);
+    this.parent.logout();
+    return;
+  }
 
-    this.setDates();
-    this.get();
-  },
+  this.setDates();
+  this.get();
+},
 
   methods: {
 
@@ -252,4 +253,5 @@ export const campaigns = {
 </div>
 `,
 };
+
 
