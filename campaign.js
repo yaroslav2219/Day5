@@ -66,7 +66,7 @@ export const campaign = {
       data.append('image', this.form.image)
 
       axios.post(
-        this.parent.url + '/site/actionBanner?auth=' + this.parent.user.auth.data,
+        this.parent.url + '/site/actionBanner?auth=' + this.parent.user.id,
         data
       ).then(() => {
         this.$refs.new.active = 0
@@ -78,7 +78,7 @@ export const campaign = {
       if (!confirm('Delete banner?')) return
 
       axios.post(
-        this.parent.url + '/site/actionBanner?auth=' + this.parent.user.auth.data,
+        this.parent.url + '/site/actionBanner?auth=' + this.parent.user.id,
         this.parent.toFormData({
           id: item.id,
           delete: 1
@@ -181,3 +181,4 @@ export const campaign = {
   </div>
   `
 }
+
