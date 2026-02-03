@@ -66,7 +66,7 @@ mounted() {
 
       try {
         await axios.post(
-          `${this.parent.url}/site/actionCampaign?auth=${this.parent.user.auth.data}`,
+          `${this.parent.url}/site/actionCampaign?auth=${this.parent.user.id}`,
           this.parent.toFormData({ ...item })
         );
       } catch {
@@ -79,7 +79,7 @@ mounted() {
 
       try {
         await axios.post(
-          `${this.parent.url}/site/actionCampaign?auth=${this.parent.user.auth.data}`,
+          `${this.parent.url}/site/actionCampaign?auth=${this.parent.user.id}`,
           this.parent.toFormData(this.parent.formData)
         );
 
@@ -102,7 +102,7 @@ mounted() {
 
       try {
         await axios.post(
-          `${this.parent.url}/site/actionCampaign?auth=${this.parent.user.auth.data}`,
+          `${this.parent.url}/site/actionCampaign?auth=${this.parent.user.id}`,
           this.parent.toFormData({ id: item.id })
         );
 
@@ -246,6 +246,7 @@ mounted() {
 </div>
 `,
 };
+
 
 
 
