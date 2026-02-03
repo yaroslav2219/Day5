@@ -16,11 +16,11 @@ export const campaigns = {
     };
   },
 
- mounted() {
+mounted() {
   this.parent = this.$root;
 
-  if (!this.parent?.user?.auth?.data) {
-    console.warn('NO AUTH DATA', this.parent.user);
+  if (!this.parent?.user?.id) {
+    console.warn('NO USER ID', this.parent.user);
     this.parent.logout();
     return;
   }
@@ -28,6 +28,7 @@ export const campaigns = {
   this.setDates();
   this.get();
 },
+
 
   methods: {
 
@@ -40,27 +41,19 @@ export const campaigns = {
       this.date2 = last.toISOString().slice(0, 10);
     },
 
-  async get() {
+ async get() {
   this.loader = true;
 
   try {
     const res = await axios.post(
-      `${this.parent.url}/site/getCampaigns?auth=${this.parent.user.auth.data}`,
-      this.parent.toFormData({
-        date: this.date,
-        date2: this.date2,
-      })
+      `${this.parent.url}/site/getCampaigns?auth=${this.parent.user.id}`
     );
 
     this.items = Array.isArray(res.data.items)
-      ? res.data.items.filter(i => i && i.id)
+      ? res.data.items
       : [];
   } catch (e) {
-    if (e.response && e.response.status === 401) {
-      this.parent.logout();
-    } else {
-      console.warn('Campaigns load failed:', e.message);
-    }
+    console.error(e);
   } finally {
     this.loader = false;
   }
@@ -253,5 +246,6 @@ export const campaigns = {
 </div>
 `,
 };
+
 
 
