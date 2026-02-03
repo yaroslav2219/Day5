@@ -4,7 +4,7 @@ import { popup } from "./popup.js";
 import { header } from "./header.js";
 import { toogle } from "./toogle.js";
 import { img } from "./img.js";
-import { chart } from "./chart.js";
+
 
 document.addEventListener('DOMContentLoaded', function(){
     const main   = {
@@ -111,7 +111,6 @@ logout() {
     };
 
     var app = Vue.createApp(main)
-    .component('chart', chart)
     .component('img', img)
     .component('toogle', toogle)
     .component('Header',header)
@@ -120,6 +119,7 @@ logout() {
     app.use(router)
     .mount('#content')
 });
+
 
 
 
