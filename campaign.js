@@ -14,7 +14,6 @@ export const campaign = {
   },
 
   mounted() {
-     mounted() {
     this.parent = this.$root
 
     if (!this.parent?.user?.id && this.parent?.user?.auth?.data) {
@@ -25,7 +24,6 @@ export const campaign = {
       console.warn('NO USER ID', this.parent?.user)
       this.parent.logout()
       return
-    }
   },
 
   methods: {
@@ -217,6 +215,7 @@ export const campaign = {
   </div>
   `
 }
+
 
 
 
