@@ -14,14 +14,17 @@ export const campaign = {
   },
 
   mounted() {
+     mounted() {
     this.parent = this.$root
 
-    if (!this.parent?.user?.auth?.data) {
-      this.parent.logout()
-      return
+    if (!this.parent?.user?.id && this.parent?.user?.auth?.data) {
+      this.parent.user.id = this.parent.user.auth.data
     }
 
-    this.get()
+    if (!this.parent?.user?.id) {
+      console.warn('NO USER ID', this.parent?.user)
+      this.parent.logout()
+      return
   },
 
   methods: {
@@ -74,38 +77,38 @@ export const campaign = {
       })
     },
 
-    getCampaignBannersChart: function () {
-  var self = this;
-  var data = self.parent.toFormData(self.parent.formData);
+  getCampaignBannersChart() {
+      const data = this.parent.toFormData(this.parent.formData)
 
-  if (this.date1 !== "") data.append('date1', this.date1);
-  if (this.date2 !== "") data.append('date2', this.date2);
-  if (this.q !== "") data.append('q', this.q);
-  if (this.sort !== "") data.append('sort', this.sort);
+      if (this.date1 !== '') data.append('date1', this.date1)
+      if (this.date2 !== '') data.append('date2', this.date2)
+      if (this.q !== '') data.append('q', this.q)
+      if (this.sort !== '') data.append('sort', this.sort)
 
-  self.loader = 1;
+      this.loader = 1
 
-  axios.post(
-    self.parent.url + "/site/getCampaignBannersChart?auth=" + self.parent.user.id,
-    data
-  )
-  .then(function (response) {
+      axios
+        .post(
+          this.parent.url +
+            '/site/getCampaignBannersChart?auth=' +
+            this.parent.user.id,
+          data
+        )
+        .then(response => {
+          this.parent.formData.views = response.data.items.views
+          this.parent.formData.clicks = response.data.items.clicks
+          this.parent.formData.line = response.data.items.line
+          this.parent.formData.sites = response.data.items.sites
 
-    self.parent.formData.views  = response.data.items.views;
-    self.parent.formData.clicks = response.data.items.clicks;
-    self.parent.formData.line   = response.data.items.line;
-    self.parent.formData.sites  = response.data.items.sites;
-
-    self.line(response.data.items);
-    self.loader = 0;
-  })
-  .catch(function (error) {
-    console.error(error);
-    self.loader = 0;
-    // ❌ НЕ логаутим автоматично
-  });
-},
-
+          this.line(response.data.items)
+          this.loader = 0
+        })
+        .catch(error => {
+          console.error(error)
+          this.loader = 0
+        })
+    },
+    
     del(item) {
       if (!confirm('Delete banner?')) return
 
@@ -213,6 +216,7 @@ export const campaign = {
   </div>
   `
 }
+
 
 
 
