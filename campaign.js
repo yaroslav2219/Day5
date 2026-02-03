@@ -25,6 +25,7 @@ export const campaign = {
       console.warn('NO USER ID', this.parent?.user)
       this.parent.logout()
       return
+    }
   },
 
   methods: {
@@ -216,6 +217,7 @@ export const campaign = {
   </div>
   `
 }
+
 
 
 
