@@ -24,55 +24,70 @@ export const campaign = {
     this.get()
   },
 
-  methods: {
+methods: {
 
   get() {
-  this.items = [
-    {
-      id: 1,
-      image: 'https://via.placeholder.com/300x250',
-      type: '300x250',
-      link: 'https://dreamview-seo.co-il',
-      views: 120,
-      clicks: 15,
-      leads: 3,
-      fclicks: 0
-    }
-  ]
-},
-
-    openNew() {
-      this.form = {
-        link: '',
-        description: '',
-        type: '',
-        image: null
+    this.items = [
+      {
+        id: 1,
+        image: 'https://via.placeholder.com/300x250',
+        type: '300x250',
+        link: 'https://dreamview-seo.co-il',
+        views: 120,
+        clicks: 15,
+        leads: 3,
+        fclicks: 0
       }
-      this.$refs.new.active = 1
-    },
+    ]
+  },
 
-    onImageChange(e) {
-      this.form.image = e.target.files[0] || null
-    },
+  openNew() {
+    this.form = {
+      link: '',
+      description: '',
+      type: '',
+      image: null
+    }
+    this.$refs.new.active = 1
+  },
 
-    save() {
-      if (!this.form.link || !this.form.type || !this.form.image) return
+  onImageChange(e) {
+    this.form.image = e.target.files[0] || null
+  },
 
-      const data = new FormData()
-      data.append('campaign', this.$route.params.id)
-      data.append('link', this.form.link)
-      data.append('description', this.form.description)
-      data.append('type', this.form.type)
-      data.append('image', this.form.image)
+  save() {
+    if (!this.form.link || !this.form.type || !this.form.image) return
 
-      axios.post(
-        this.parent.url + '/site/actionBanner?auth=' + this.parent.user.auth.data,
-        data
-      ).then(() => {
-        this.$refs.new.active = 0
-        this.get()
+    const data = new FormData()
+    data.append('campaign', this.$route.params.id)
+    data.append('link', this.form.link)
+    data.append('description', this.form.description)
+    data.append('type', this.form.type)
+    data.append('image', this.form.image)
+
+    axios.post(
+      this.parent.url + '/site/actionBanner?auth=' + this.parent.user.auth.data,
+      data
+    ).then(() => {
+      this.$refs.new.active = 0
+      this.get()
+    })
+  },
+
+  del(item) {
+    if (!confirm('Delete banner?')) return
+
+    axios.post(
+      this.parent.url + '/site/actionBanner?auth=' + this.parent.user.auth.data,
+      this.parent.toFormData({
+        id: item.id,
+        delete: 1
       })
-    },
+    ).then(() => {
+      this.get()
+    })
+  }
+},
 
     del(item) {
       if (!confirm('Delete banner?')) return
@@ -181,5 +196,6 @@ export const campaign = {
   </div>
   `
 }
+
 
 
