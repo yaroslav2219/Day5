@@ -49,11 +49,11 @@ document.addEventListener('DOMContentLoaded', function(){
                 }
                 });
             },
-            logout(){
-                this.user = {name:"", phone:"", email:"", date:"", auth:""};
-                this.page('/');
-                window.localStorage.setItem('user','');
-            },
+logout() {
+  this.user = { name:"", phone:"", email:"", date:"", auth:"" };
+  window.localStorage.removeItem('user');
+  this.page('/');
+},
             scrollTop(){
                 setTimeout(function(){
                     window.scroll({
@@ -108,6 +108,7 @@ document.addEventListener('DOMContentLoaded', function(){
     app.use(router)
     .mount('#content')
 });
+
 
 
 
