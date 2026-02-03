@@ -170,9 +170,7 @@ mounted() {
           grid: { drawOnChartArea: false } 
         }
       }
-    }
-  });
-},
+    },
         options: {
           responsive: true,
           plugins: { legend: { display: false } },
@@ -270,6 +268,7 @@ mounted() {
 </div>
 `,
 };
+
 
 
 
