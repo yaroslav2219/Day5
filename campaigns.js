@@ -172,11 +172,9 @@ mounted() {
       }
     }
   });
-  },
-        options: {
-          responsive: true,
-          plugins: { legend: { display: false } },
   }
+  },
+
 
   template: `
 <div class="inside-content">
@@ -267,6 +265,7 @@ mounted() {
 </div>
 `,
 };
+
 
 
 
